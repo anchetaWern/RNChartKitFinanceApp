@@ -14,6 +14,11 @@ import {
 
 enablePromise(true);
 
+const monthYear = new Date().toLocaleDateString(undefined, {
+	year: 'numeric',
+	month: '2-digit',
+});
+
 export const getDBConnection = async () => {
 	return openDatabase({name: 'finance-data.db', location: 'default'});
 };
@@ -28,24 +33,6 @@ export const createFund = async (db, fund) => {
 	const {name, fundType} = fund;
 	const insertQuery = `INSERT INTO funds(name, fundType) VALUES("${name}", "${fundType}")`;
 	return db.executeSql(insertQuery);
-};
-
-export const getFunds = async db => {
-	try {
-		const funds = [];
-		const results = await db.executeSql(
-			`SELECT rowid as id, name, fundType FROM funds`,
-		);
-		results.forEach(result => {
-			for (let index = 0; index < result.rows.length; index++) {
-				funds.push(result.rows.item(index));
-			}
-		});
-		return funds;
-	} catch (error) {
-		console.error(error);
-		throw Error('Failed to getFunds...');
-	}
 };
 
 // categories
@@ -93,32 +80,16 @@ export const createTransaction = async (db, transaction) => {
 	return db.executeSql(insertQuery);
 };
 
-export const getTransactions = async db => {
-	try {
-		const transactions = [];
-		const results = await db.executeSql(
-			`SELECT rowid as id, transactionDate, summary, category_id, transactionType, amount FROM transactions`,
-		);
-		results.forEach(result => {
-			for (let index = 0; index < result.rows.length; index++) {
-				transactions.push(result.rows.item(index));
-			}
-		});
-		return transactions;
-	} catch (error) {
-		console.error(error);
-		throw Error('Failed to getTransactions...');
-	}
-};
-
 export const getTransactionsGroupedByTransactionType = async db => {
 	try {
 		const transactions = [];
 		const results = await db.executeSql(
 			`SELECT SUM(amount) AS total, transactionType AS name FROM transactions 
-			INNER JOIN categories ON categories.rowId = transactions.category_id 
-			GROUP BY transactions.transactionType`,
+			WHERE strftime("%m/%Y", datetime(transactionDate, 'unixepoch', 'localtime')) = ?
+			GROUP BY transactionType`,
+			[monthYear],
 		);
+
 		results.forEach(result => {
 			for (let index = 0; index < result.rows.length; index++) {
 				const {name, total} = result.rows.item(index);
@@ -142,8 +113,9 @@ export const getExpenseTransactionsGroupedByCategory = async db => {
 		const results = await db.executeSql(
 			`SELECT SUM(amount) AS total, categories.name AS name FROM transactions 
 			INNER JOIN categories ON categories.rowId = transactions.category_id 
-			WHERE categoryType = 'expense'
+			WHERE categoryType = 'expense' AND strftime("%m/%Y", datetime(transactionDate, 'unixepoch', 'localtime')) = ?
 			GROUP BY transactions.category_id`,
+			[monthYear],
 		);
 		results.forEach(result => {
 			for (let index = 0; index < result.rows.length; index++) {
@@ -169,7 +141,9 @@ export const getIncomeTransactionsGroupedByCategory = async db => {
 			`SELECT SUM(amount) AS total, categories.name AS name FROM transactions 
 			INNER JOIN categories ON categories.rowId = transactions.category_id 
 			WHERE categoryType = 'income' AND transactions.transactionType = 'income'
+			AND strftime("%m/%Y", datetime(transactionDate, 'unixepoch', 'localtime')) = ?
 			GROUP BY transactions.category_id`,
+			[monthYear],
 		);
 		results.forEach(result => {
 			for (let index = 0; index < result.rows.length; index++) {
@@ -195,7 +169,9 @@ export const getSavingsTransactionsGroupedByCategory = async db => {
 			`SELECT SUM(amount) AS total, categories.name AS name FROM transactions 
 			INNER JOIN categories ON categories.rowId = transactions.category_id 
 			WHERE categoryType = 'income' AND transactions.transactionType = 'savings'
+			AND strftime("%m/%Y", datetime(transactionDate, 'unixepoch', 'localtime')) = ?
 			GROUP BY transactions.category_id`,
+			[monthYear],
 		);
 		results.forEach(result => {
 			for (let index = 0; index < result.rows.length; index++) {
@@ -221,7 +197,9 @@ export const getInvestmentTransactionsGroupedByCategory = async db => {
 			`SELECT SUM(amount) AS total, categories.name AS name FROM transactions 
 			INNER JOIN categories ON categories.rowId = transactions.category_id 
 			WHERE categoryType = 'income' AND transactions.transactionType = 'investment'
+			AND strftime("%m/%Y", datetime(transactionDate, 'unixepoch', 'localtime')) = ?
 			GROUP BY transactions.category_id`,
+			[monthYear],
 		);
 		results.forEach(result => {
 			for (let index = 0; index < result.rows.length; index++) {
