@@ -1,5 +1,5 @@
 import React, {useState, useCallback, useEffect} from 'react';
-import {StyleSheet, TouchableOpacity, Alert, Platform} from 'react-native';
+import {StyleSheet, Alert, Platform} from 'react-native';
 
 import {Button, TextInput, withTheme, RadioButton} from 'react-native-paper';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -20,30 +20,7 @@ import {
 	createTransaction,
 } from '../../data/db-service';
 
-const transactionTypes = [
-	{
-		label: 'Expense',
-		value: 'expense',
-	},
-
-	{
-		label: 'Investment',
-		value: 'investment',
-	},
-	{
-		label: 'Savings',
-		value: 'savings',
-	},
-
-	{
-		label: 'Income',
-		value: 'income',
-	},
-	{
-		label: 'Donation',
-		value: 'donation',
-	},
-];
+import {transactionTypes} from '../config/app';
 
 const CreateTransactionScreen = ({theme}) => {
 	const [transactionDate, setTransactionDate] = useState(new Date());
