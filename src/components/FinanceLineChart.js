@@ -6,7 +6,7 @@ import Legend from './Legend';
 
 const screenWidth = Dimensions.get('window').width;
 
-function FinancePieChart({title, chartData, legend, fillShadowGradient}) {
+function FinanceLieChart({title, chartData, legend, fillShadowGradient}) {
 	const chartConfig = {
 		backgroundGradientFrom: '#fff',
 		backgroundGradientFromOpacity: 0,
@@ -60,4 +60,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default FinancePieChart;
+export default FinanceLieChart;
